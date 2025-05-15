@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import random
+from fastapi import Query, HTTPException  
 
 app = FastAPI()
 
@@ -31,19 +32,26 @@ def get_live_data():
     }
 
 @app.get("/api/history")
-def get_history(date: str = None):
-    base_date = datetime.strptime(date, "%Y-%m-%d") if date else datetime.now()
-    history = []
+def get_history(date: str = Query(None)):
+    try:
+        base_date = datetime.strptime(date, "%Y-%m-%d") if date else datetime.now()
+        history = []
 
-    for i in range(24):
-        hour_data = {
-            "timestamp": (base_date.replace(hour=0, minute=0) + timedelta(hours=i)).isoformat(),
-            "wattage": round(random.uniform(200, 800), 2),
-            "temperature": round(random.uniform(25, 35), 2),
+        for i in range(24):
+            hour_data = {
+                "timestamp": (base_date.replace(hour=i, minute=0, second=0, microsecond=0)).isoformat(),
+                "wattage": round(random.uniform(200, 800), 2),
+                "temperature": round(random.uniform(25, 35), 2)
+            }
+            history.append(hour_data)
+
+        return {
+            "date": base_date.strftime("%Y-%m-%d"),
+            "data": history
         }
-        history.append(hour_data)
 
-    return {
-        "date": base_date.strftime("%Y-%m-%d"),
-        "data": history
-    }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+
+

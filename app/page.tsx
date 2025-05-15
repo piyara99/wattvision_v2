@@ -1,5 +1,3 @@
-// pages/dashboard.tsx (or inside your app directory as app/dashboard/page.tsx)
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -17,32 +15,35 @@ import DashboardLayout from '@/components/DashboardLayout';
 
 const DashboardPage = () => {
   const theme = useTheme();
-  const { data, error } = useLiveData();
+  const { data, error, loading } = useLiveData();
   const [dailyUsage, setDailyUsage] = useState(0);
+  const [wattage, setWattage] = useState(0);
+  const [current, setCurrent] = useState(0);
 
-  // Hooks must come before conditional returns
-  const wattage = data
-    ? data.sensors.wattage_sensor_1 + data.sensors.wattage_sensor_2
-    : 0;
-  const current = data
-    ? data.sensors.current_sensor_1 + data.sensors.current_sensor_2
-    : 0;
-  const voltage = current ? (wattage / current).toFixed(2) : '0';
+  // Calculate wattage, current, and voltage based on live data
+  useEffect(() => {
+    if (data) {
+      setWattage(data.sensors.wattage_sensor_1 + data.sensors.wattage_sensor_2);
+      setCurrent(data.sensors.current_sensor_1 + data.sensors.current_sensor_2);
+    }
+  }, [data]);
 
+  // Calculate daily usage when wattage changes
   useEffect(() => {
     if (wattage) {
-      const usage = Number(
-        ((wattage / 1000) * new Date().getHours()).toFixed(2)
-      );
+      const usage = Number(((wattage / 1000) * new Date().getHours()).toFixed(2));
       setDailyUsage(usage);
     }
   }, [wattage]);
 
+  // If there is an error or the data is still loading
   if (error) return <div>Error: {error.message}</div>;
-  if (!data) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!data) return <div>No data available</div>;
 
   const s = data.sensors;
 
+  // Chart Data (You can replace this with dynamic data)
   const chartData = [
     { time: '8:00', power: 20 },
     { time: '10:00', power: 40 },
