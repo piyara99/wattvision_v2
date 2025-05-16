@@ -22,8 +22,9 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           <MenuIcon />
         </IconButton>
 
+        {/* Display "WattVision" as the title */}
         <Typography variant="h6" noWrap component="div">
-          Dashboard
+          WattVision
         </Typography>
       </Toolbar>
     </AppBar>
